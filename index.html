@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Task Manager App</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    input, button { margin: 5px; }
+  </style>
+</head>
+<body>
+  <h1>Task Manager</h1>
+
+  <h2>Add a Task</h2>
+  <input type="text" id="newTask" placeholder="Enter new task">
+  <button onclick="addTask()">Add Task</button>
+
+  <h2>All Tasks</h2>
+  <ul id="taskList"></ul>
+
+  <h2>Update a Task</h2>
+  <input type="number" id="updateIndex" placeholder="Task Index">
+  <input type="text" id="updatedTask" placeholder="Updated Task">
+  <button onclick="updateTask()">Update Task</button>
+
+  <h2>Delete a Task</h2>
+  <input type="number" id="deleteIndex" placeholder="Task Index">
+  <button onclick="deleteTask()">Delete Task</button>
+
+  <script>
+    // Fetch and display all tasks
+    function fetchTasks() {
+      fetch('/tasks')
+        .then(response => response.json())
+        .then(tasks => {
+          const taskList = document.getElementById('taskList');
+          taskList.innerHTML = '';
+          tasks.forEach((task, index) => {
+            const listItem = document.createElement('li');
+            listItem.innerText = `${index}: ${task}`;
+            taskList.appendChild(listItem);
+          });
+        });
+    }
+
+    // Add a new task
+    function addTask() {
+      const newTask = document.getElementById('newTask').value;
+      fetch('/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ task: newTask })
+      })
+      .then(response => response.json())
+      .then(data => {
+        alert(data.message);
+        fetchTasks(); // Refresh task list
+        document.getElementById('newTask').value = ''; // Clear input
+      });
+    }
+
+    // Update a task at a specific index
+    function updateTask() {
+      const index = document.getElementById('updateIndex').value;
+      const updatedTask = document.getElementById('updatedTask').value;
+
+      fetch(`/tasks/${index}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ task: updatedTask })
+      })
+      .then(response => response.json())
+      .then(data => {
+        alert(data.message);
+        fetchTasks(); // Refresh task list
+        document.getElementById('updateIndex').value = '';
+        document.getElementById('updatedTask').value = '';
+      });
+    }
+
+    // Delete a task at a specific index
+    function deleteTask() {
+      const index = document.getElementById('deleteIndex').value;
+
+      fetch(`/tasks/${index}`, {
+        method: 'DELETE'
+      })
+      .then(response => response.json())
+      .then(data => {
+        alert(data.message);
+        fetchTasks(); // Refresh task list
+        document.getElementById('deleteIndex').value = '';
+      });
+    }
+
+    // Fetch tasks on page load
+    fetchTasks();
+  </script>
+</body>
+</html>
